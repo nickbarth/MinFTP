@@ -77,7 +77,7 @@ func handleConn(conn net.Conn) {
 			fmt.Fprintf(conn, "229 Entering Passive Mode (|||1500|).\n")
 			transferConn = getTransferConn()
 		case "QUIT":
-			fmt.Fprintf(conn, "221\n")
+			fmt.Fprintf(conn, "221 Goodbye.\n")
 		default:
 			fmt.Printf("Not Found `%s`.\n", command)
 		}
