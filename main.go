@@ -57,7 +57,7 @@ func handleConn(conn net.Conn) {
 				tc.CloseRead()
 			}(transferConn)
 			transferConn = (*net.TCPConn)(nil)
-			fmt.Fprintf(conn, "226\n")
+			fmt.Fprintf(conn, "226 Transfer complete.\n")
 		case "RETR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
