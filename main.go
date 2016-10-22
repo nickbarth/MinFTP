@@ -23,7 +23,7 @@ func validLogin(user string, password string) bool {
 }
 
 func authRequired(command string) bool {
-	return command == "STOR" || command == "SIZE" || command == "LIST" || command == "RETR"
+	return command == "DELE" || command == "STOR" || command == "SIZE" || command == "LIST" || command == "RETR"
 }
 
 func handleConn(conn net.Conn) {
@@ -81,6 +81,10 @@ func handleConn(conn net.Conn) {
 			file, _ := os.Open(arg)
 			stats, _ := file.Stat()
 			fmt.Fprintf(conn, "213 %d\n", stats.Size())
+		case "DELE":
+			arg := strings.Split(strings.TrimSpace(message), " ")[1]
+			os.Remove(arg)
+			fmt.Fprintf(conn, "250 250 File removed.\n")
 		case "STOR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
