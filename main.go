@@ -22,6 +22,10 @@ func validLogin(user string, password string) bool {
 	return user == "admin" && password == "password"
 }
 
+func authRequired(command string) bool {
+	return command == "STOR" || command == "SIZE" || command == "LIST" || command == "RETR"
+}
+
 func handleConn(conn net.Conn) {
 	user := "anonymous"
 	password := "anonymous"
@@ -40,7 +44,7 @@ func handleConn(conn net.Conn) {
 			break
 		}
 
-		if !validLogin(user, password) && (command == "LIST" || command == "RETR" || command == "SIZE" || command == "STOR") {
+		if !validLogin(user, password) && authRequired(command) {
 			fmt.Fprintf(conn, "550 Not authorized.\n")
 			continue
 		}
