@@ -84,7 +84,7 @@ func handleConn(conn net.Conn) {
 		case "DELE":
 			arg := strings.Split(strings.TrimSpace(message), " ")[1]
 			os.Remove(arg)
-			fmt.Fprintf(conn, "250 250 File removed.\n")
+			fmt.Fprintf(conn, "250 File removed.\n")
 		case "STOR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
