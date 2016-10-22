@@ -2,7 +2,7 @@
 
 Minimal FTP Server in Golang. Anonymous login, sending, and receiving data. ( Work in progress )
 
-![Screenshot](https://cdn.rawgit.com/nickbarth/MinFTP/master/screenshot.png)
+![Screenshot](https://cdn.rawgit.com/nickbarth/MinFTP/2b122b02e126a67a1eb7274d50aa1580c6bd7c7c/screenshot.png)
 
 ### License
 WTFPL &copy; 2016 Nick Barth
