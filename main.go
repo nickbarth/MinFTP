@@ -40,7 +40,7 @@ func handleConn(conn net.Conn) {
 			break
 		}
 
-		if !validLogin(user, password) && (command == "SIZE" || command == "LIST" || command == "RETR") {
+		if !validLogin(user, password) && (command == "SIZE" || command == "STOR" || command == "RETR") {
 			fmt.Fprintf(conn, "550 Not authorized.\n")
 			continue
 		}
