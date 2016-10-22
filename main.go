@@ -16,8 +16,8 @@ func getTransferConn() *net.TCPConn {
 }
 
 func handleConn(conn net.Conn) {
-	var transferConn = (*net.TCPConn)(nil)
-	var buff = bufio.NewReader(conn)
+	transferConn := (*net.TCPConn)(nil)
+	buff := bufio.NewReader(conn)
 
 	fmt.Fprintf(conn, "200 FTP Server ready.\n")
 	fmt.Print("Connected.\n")
