@@ -89,7 +89,8 @@ func handleConn(conn net.Conn) {
 		case "QUIT":
 			fmt.Fprintf(conn, "221 Goodbye.\n")
 		default:
-			fmt.Printf("Not Found `%s`.\n", command)
+			fmt.Fprintf(conn, "502 Command not implemented.\n")
+			fmt.Printf("Command not implemented `%s`.\n", command)
 		}
 	}
 }
