@@ -3,7 +3,10 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io/ioutil"
 	"net"
+	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -40,7 +43,7 @@ func handleConn(conn net.Conn) {
 		case "SYST":
 			fmt.Fprintf(conn, "215 UNIX Type: L8\n")
 		case "FEAT":
-			fmt.Fprintf(conn, "200\n")
+			fmt.Fprintf(conn, "211-Supported:\n SIZE\n ESPV\n UTF8\n211 End\n")
 		case "CWD":
 			fmt.Fprintf(conn, "250 CWD successful.\n")
 		case "PWD":
@@ -48,12 +51,16 @@ func handleConn(conn net.Conn) {
 		case "TYPE":
 			fmt.Fprintf(conn, "200 Type set to: Binary.\n")
 		case "SIZE":
-			fmt.Fprintf(conn, "213 28\n")
+			arg := strings.Split(strings.TrimSpace(message), " ")[1]
+			file, _ := os.Open(arg)
+			stats, _ := file.Stat()
+			fmt.Fprintf(conn, "213 %d\n", stats.Size())
 		case "STOR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
-				message, _ := bufio.NewReader(tc).ReadString('\n')
-				fmt.Printf("DATA:\n%s", message)
+				arg := strings.Split(strings.TrimSpace(message), " ")[1]
+				data, _ := ioutil.ReadAll(tc)
+				ioutil.WriteFile(arg, data, 0644)
 				tc.CloseRead()
 			}(transferConn)
 			transferConn = (*net.TCPConn)(nil)
@@ -61,15 +68,18 @@ func handleConn(conn net.Conn) {
 		case "RETR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
-				fmt.Fprintf(tc, "EXAMPLE DATA\r\n")
+				arg := strings.Split(strings.TrimSpace(message), " ")[1]
+				data, _ := ioutil.ReadFile(arg)
+				fmt.Fprintf(tc, string(data))
 				tc.CloseWrite()
 			}(transferConn)
 			transferConn = (*net.TCPConn)(nil)
 			fmt.Fprintf(conn, "226 Transfer complete.\n")
-		case "LIST":
+		case "LIST", "NLST":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
-				fmt.Fprintf(tc, "example_file.txt\r\n")
+				output, _ := exec.Command("ls").Output()
+				fmt.Fprintf(tc, "%s", strings.Replace(string(output), "\n", "\r\n", -1))
 				tc.CloseWrite()
 			}(transferConn)
 			fmt.Fprintf(conn, "226 Transfer complete.\n")
