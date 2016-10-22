@@ -71,7 +71,7 @@ func handleConn(conn net.Conn) {
 		case "FEAT":
 			fmt.Fprintf(conn, "211-Supported:\n SIZE\n ESPV\n UTF8\n211 End\n")
 		case "CWD":
-			fmt.Fprintf(conn, "250 CWD successful.\n")
+			fmt.Fprintf(conn, "250 \"/\" is the current directory.\n")
 		case "PWD":
 			fmt.Fprintf(conn, "257 \"/\" is the remote directory.\n")
 		case "TYPE":
