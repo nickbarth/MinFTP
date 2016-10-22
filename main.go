@@ -18,7 +18,14 @@ func getTransferConn() *net.TCPConn {
 	return conn
 }
 
+func validLogin(user string, password string) bool {
+	return user == "admin" && password == "password"
+}
+
 func handleConn(conn net.Conn) {
+	user := "anonymous"
+	password := "anonymous"
+
 	transferConn := (*net.TCPConn)(nil)
 	buff := bufio.NewReader(conn)
 
@@ -33,13 +40,28 @@ func handleConn(conn net.Conn) {
 			break
 		}
 
+		if !validLogin(user, password) && (command == "SIZE" || command == "LIST" || command == "RETR") {
+			fmt.Fprintf(conn, "550 Not authorized.\n")
+			continue
+		}
+
 		fmt.Print(message)
 
 		switch command {
 		case "USER":
+			user = strings.Split(strings.TrimSpace(message), " ")[1]
 			fmt.Fprintf(conn, "331 User okay. Please specify the password.\n")
 		case "PASS":
-			fmt.Fprintf(conn, "230 Login successful.\n")
+			arg := strings.Split(strings.TrimSpace(message), " ")
+			if len(arg) == 2 {
+				password = arg[1]
+			}
+
+			if validLogin(user, password) {
+				fmt.Fprintf(conn, "230 Login successful.\n")
+			} else {
+				fmt.Fprintf(conn, "530 Authentication failed.\n")
+			}
 		case "SYST":
 			fmt.Fprintf(conn, "215 UNIX Type: L8\n")
 		case "FEAT":
@@ -75,7 +97,7 @@ func handleConn(conn net.Conn) {
 			}(transferConn)
 			transferConn = (*net.TCPConn)(nil)
 			fmt.Fprintf(conn, "226 Transfer complete.\n")
-		case "LIST", "NLST":
+		case "LIST":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
 				output, _ := exec.Command("ls").Output()
@@ -89,8 +111,8 @@ func handleConn(conn net.Conn) {
 		case "QUIT":
 			fmt.Fprintf(conn, "221 Goodbye.\n")
 		default:
+			fmt.Printf("Not Found `%s`.\n", command)
 			fmt.Fprintf(conn, "502 Command not implemented.\n")
-			fmt.Printf("Command not implemented `%s`.\n", command)
 		}
 	}
 }
