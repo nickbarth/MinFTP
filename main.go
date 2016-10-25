@@ -4,14 +4,17 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
+	"time"
 )
 
-func getTransferConn() *net.TCPConn {
-	server, _ := net.Listen("tcp", ":1500")
+func getTransferConn(port string) *net.TCPConn {
+	server, _ := net.Listen("tcp", ":"+port)
 	defer server.Close()
 	listener := server.(*net.TCPListener)
 	conn, _ := listener.AcceptTCP()
@@ -29,6 +32,9 @@ func authRequired(command string) bool {
 func handleConn(conn net.Conn) {
 	user := "anonymous"
 	password := "anonymous"
+
+	ip, _, _ := net.SplitHostPort(conn.RemoteAddr().String())
+	port := strconv.Itoa(6000 + rand.Intn(1000))
 
 	transferConn := (*net.TCPConn)(nil)
 	buff := bufio.NewReader(conn)
@@ -114,8 +120,16 @@ func handleConn(conn net.Conn) {
 			}(transferConn)
 			fmt.Fprintf(conn, "226 Transfer complete.\n")
 		case "EPSV":
-			fmt.Fprintf(conn, "229 Entering Passive Mode (|||1500|).\n")
-			transferConn = getTransferConn()
+			fmt.Fprintf(conn, "229 Entering Passive Mode (|||"+port+"|).\n")
+
+			transferConn = getTransferConn(port)
+			ipcmp, _, _ := net.SplitHostPort(transferConn.RemoteAddr().String())
+
+			if ip != ipcmp {
+				fmt.Fprintf(conn, "550 Not authorized.\n")
+				conn.Close()
+				transferConn.Close()
+			}
 		case "QUIT":
 			fmt.Fprintf(conn, "221 Goodbye.\n")
 		default:
@@ -126,6 +140,7 @@ func handleConn(conn net.Conn) {
 }
 
 func main() {
+	rand.Seed(time.Now().UTC().UnixNano())
 	server, _ := net.Listen("tcp", ":2121")
 	defer server.Close()
 
