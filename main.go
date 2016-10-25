@@ -68,7 +68,7 @@ func handleConn(conn net.Conn) {
 			continue
 		}
 
-		fmt.Print(message)
+		fmt.Print(time.Now().Format(time.RFC3339) + " " + ip + " " + message)
 
 		switch command {
 		case "USER":
