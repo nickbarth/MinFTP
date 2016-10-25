@@ -57,6 +57,7 @@ func handleConn(conn net.Conn) {
 	for {
 		message, err := buff.ReadString('\n')
 		command := strings.Split(strings.TrimSpace(message), " ")[0]
+
 		arg := getArg(message)
 		filename := getFilename(arg)
 		stats, fileErr := os.Stat(filename)
