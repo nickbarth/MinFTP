@@ -57,10 +57,7 @@ func handleConn(conn net.Conn) {
 	for {
 		message, err := buff.ReadString('\n')
 		command := strings.Split(strings.TrimSpace(message), " ")[0]
-
 		arg := getArg(message)
-		filename := getFilename(arg)
-		stats, fileErr := os.Stat(filename)
 
 		if err != nil {
 			break
@@ -96,16 +93,19 @@ func handleConn(conn net.Conn) {
 			fmt.Fprintf(conn, "200 Type set to: Binary.\n")
 		case "SIZE":
 			size := int64(0)
-			if fileErr == nil {
+			filename := getFilename(arg)
+			if stats, err := os.Stat(filename); err == nil {
 				size = stats.Size()
 			}
 			fmt.Fprintf(conn, "213 %d\n", size)
 		case "DELE":
+			filename := getFilename(arg)
 			os.Remove(filename)
 			fmt.Fprintf(conn, "250 File removed.\n")
 		case "STOR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
+				filename := getFilename(arg)
 				data, _ := ioutil.ReadAll(tc)
 				ioutil.WriteFile(filename, data, 0644)
 				tc.CloseRead()
@@ -115,6 +115,7 @@ func handleConn(conn net.Conn) {
 		case "RETR":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
+				filename := getFilename(arg)
 				data, _ := ioutil.ReadFile(filename)
 				fmt.Fprintf(tc, string(data))
 				tc.CloseWrite()
