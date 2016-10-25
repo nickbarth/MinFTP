@@ -74,7 +74,7 @@ func handleConn(conn net.Conn) {
 
 		switch command {
 		case "USER":
-			user = strings.Split(strings.TrimSpace(message), " ")[1]
+			user = arg
 			fmt.Fprintf(conn, "331 User okay. Please specify the password.\n")
 		case "PASS":
 			password = arg
