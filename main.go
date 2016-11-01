@@ -113,15 +113,19 @@ func handleConn(conn net.Conn) {
 			transferConn = (*net.TCPConn)(nil)
 			fmt.Fprintf(conn, "226 Transfer complete.\n")
 		case "RETR":
-			fmt.Fprintf(conn, "125 Transfer starting.\n")
-			func(tc *net.TCPConn) {
-				filename := getFilename(arg)
-				data, _ := ioutil.ReadFile(filename)
-				fmt.Fprintf(tc, string(data))
-				tc.CloseWrite()
-			}(transferConn)
-			transferConn = (*net.TCPConn)(nil)
-			fmt.Fprintf(conn, "226 Transfer complete.\n")
+			filename := getFilename(arg)
+			if _, err := os.Stat(filename); err == nil {
+				fmt.Fprintf(conn, "125 Transfer starting.\n")
+				func(tc *net.TCPConn) {
+					data, _ := ioutil.ReadFile(filename)
+					fmt.Fprintf(tc, string(data))
+					tc.CloseWrite()
+				}(transferConn)
+				transferConn = (*net.TCPConn)(nil)
+				fmt.Fprintf(conn, "226 Transfer complete.\n")
+			} else {
+				fmt.Fprintf(conn, "550 File not found.\n")
+			}
 		case "LIST":
 			fmt.Fprintf(conn, "125 Transfer starting.\n")
 			func(tc *net.TCPConn) {
