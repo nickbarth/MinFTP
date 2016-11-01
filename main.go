@@ -64,7 +64,7 @@ func handleConn(conn net.Conn) {
 		}
 
 		if !validLogin(user, password) && authRequired(command) {
-			fmt.Fprintf(conn, "550 Not authorized.\n")
+			fmt.Fprintf(conn, "530 Not authorized.\n")
 			continue
 		}
 
